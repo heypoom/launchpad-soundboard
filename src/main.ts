@@ -3,20 +3,21 @@ import VueRouter from 'vue-router'
 
 import App from './App.vue'
 import Soundboard from './Soundboard.vue'
+import Animator from './Animator.vue'
 
 Vue.use(VueRouter)
 
 const routes = [
-  {path: '/', component: Soundboard},
+	{path: '/', component: Soundboard}
+	{path: '/animator', component: Animator}
 ]
 
 const router = new VueRouter({routes})
 
 const app = new Vue({
-  render: (h) => h(App),
+  render: h => h(App),
   router,
   components: {App},
 }).$mount('#app')
 
 window.app = app
-
