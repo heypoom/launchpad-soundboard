@@ -1,0 +1,9 @@
+{
+  "include": ["**/*.ts", "**/*.vue"],
+  "exclude": ["node_modules"],
+  "files": ["./src/vue-shims.d.ts"],
+  "compilerOptions": {
+    "allowJs": true,
+    "lib": ["ES2015", "DOM"]
+  }
+}
