@@ -3,14 +3,10 @@ import VueRouter from 'vue-router'
 
 import App from './App.vue'
 import Soundboard from './Soundboard.vue'
-import Animator from './Animator.vue'
 
 Vue.use(VueRouter)
 
-const routes = [
-	{path: '/', component: Soundboard}
-	{path: '/animator', component: Animator}
-]
+const routes = [{path: '/', component: Soundboard}]
 
 const router = new VueRouter({routes})
 

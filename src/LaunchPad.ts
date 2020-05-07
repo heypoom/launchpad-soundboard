@@ -49,22 +49,22 @@ function buildMidiGrid() {
 }
 
 // prettier-ignore
-export const Color = (note: number, color: number) =>
+export const ColorSpec = (note: number, color: number) =>
   [0, note % 99, color % 128]
 
 // prettier-ignore
-export const Flash = (note: number, A: number, B: number) =>
+export const FlashSpec = (note: number, A: number, B: number) =>
   [1, note % 99, A % 128, B % 128]
 
 // prettier-ignore
-export const Pulse = (note: number, color: number) => 
+export const PulseSpec = (note: number, color: number) => 
   [2, note % 99, color % 128]
 
 // prettier-ignore
-export const RGB = (note: number, r: number, g: number, b: number) =>
+export const RGBSpec = (note: number, r: number, g: number, b: number) =>
   [3, note % 99, r % 128, g % 128, b % 128]
 
-function buildMidiToGridMapper() {
+function buildMapper() {
   // prettier-ignore
   const genRanges = [
     [81, -80],
@@ -78,18 +78,51 @@ function buildMidiToGridMapper() {
   ]
 
   const midiToGrid = {}
+  const gridToMidi = {}
 
   for (let [startAt, offset] of genRanges) {
     for (let i = 0; i < 8; i++) {
       midiToGrid[startAt + i] = startAt + i + offset
+      gridToMidi[startAt + i + offset] = startAt + i
     }
   }
 
-  return midiToGrid
+  return [midiToGrid, gridToMidi]
 }
 
 export const midiGrid = buildMidiGrid()
-export const midiToGridMap = buildMidiToGridMapper()
+export const [midiToGridMap, gridToMidiMap] = buildMapper()
+
+export function posOf(n: number) {
+  let x = (n % 8) - 1
+  if (x === -1) x = 7
+
+  let y = Math.max(Math.ceil(n / 8) - 1, 0)
+
+  return [x, y]
+}
+
+export const toID = (note: number) => midiToGridMap[note]
+export const toNote = (id: number) => gridToMidiMap[id]
+
+export const ControlButtons = {
+  UP: 91,
+  DOWN: 92,
+  LEFT: 93,
+  RIGHT: 94,
+  SESSION: 95,
+  NOTE: 96,
+  CUSTOM: 97,
+  CAPTURE_MIDI: 98,
+  VOLUME: 89,
+  PAN: 79,
+  SEND_A: 69,
+  SEND_B: 59,
+  STOP_CLIP: 49,
+  MUTE: 39,
+  SOLO: 29,
+  RECORD_ARM: 19,
+}
 
 export class LaunchPadX {
   midiIn: Input
@@ -106,7 +139,8 @@ export class LaunchPadX {
   initialized = false
 
   midiGrid = midiGrid
-  midiToGridMap = midiToGridMap
+  toID = toID
+  toNote = toNote
 
   listeners: KeyListeners = {
     controlChange: [],
@@ -199,15 +233,15 @@ export class LaunchPadX {
   }
 
   flash(n: number, a: number, b: number) {
-    this.bulk([Flash(n, a, b)])
+    this.bulk([FlashSpec(n, a, b)])
   }
 
   rgb(n: number, r: number, g: number, b: number) {
-    this.bulk([RGB(n, r, g, b)])
+    this.bulk([RGBSpec(n, r, g, b)])
   }
 
   pulse(n: number, color: number) {
-    this.bulk([Pulse(n, color)])
+    this.bulk([PulseSpec(n, color)])
   }
 
   bulk(specs: number[][]) {
@@ -235,7 +269,7 @@ export class LaunchPadX {
         let item = grid[y][x]
 
         if (typeof item === 'number') {
-          specs.push(Color(note, item))
+          specs.push(ColorSpec(note, item))
         } else if (Array.isArray(item)) {
           specs.push([...item.slice(0, 1), note, ...item.slice(1)])
         }
@@ -256,6 +290,8 @@ export class LaunchPadX {
       [C, C, C, C, C, C, C, C],
       [C, C, C, C, C, C, C, C],
     ]
+
+    console.log('> Clear OK')
 
     this.grid(grid)
   }
